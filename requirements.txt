@@ -2,3 +2,4 @@ googlemaps
 pandas
 openpyxl
 waitress
+gunicorn
