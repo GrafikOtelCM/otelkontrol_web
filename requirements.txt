@@ -1,0 +1,4 @@
+tk
+googlemaps
+pandas
+openpyxl
