@@ -1,115 +1,109 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import googlemaps
-import pandas as pd
 import os
+import pandas as pd
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'
-UPLOAD_FOLDER = 'uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.secret_key = "supersecretkey"
 
-AUTHORIZED_USERS = {
+# =====================
+# Çoklu Kullanıcı Listesi (kullanıcı adı: şifre)
+# =====================
+USERS = {
     "otelcm": "OtelCM741952",
-    "muhammed": "muhammed2025",
-    "can": "otelkontrol"
+    "ecem": "e741952",
+    "grafik": "g741952"
 }
 
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-@app.context_processor
-def inject_user():
-    return dict(username=session.get('username'))
-
+# =====================
+# Giriş Sayfası
+# =====================
 @app.route('/', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        if AUTHORIZED_USERS.get(username) == password:
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        if username in USERS and USERS[username] == password:
             session['username'] = username
             return redirect(url_for('apikey'))
         else:
-            flash('Kullanıcı adı veya şifre hatalı.')
-    return render_template('login.html')
+            error = "Kullanıcı adı veya şifre hatalı"
 
+    return render_template('login.html', error=error)
+
+# =====================
+# API Key Sayfası
+# =====================
 @app.route('/apikey', methods=['GET', 'POST'])
 def apikey():
     if 'username' not in session:
         return redirect(url_for('login'))
-    if request.method == 'POST':
-        key = request.form['apikey'].strip()
-        if key:
-            session['apikey'] = key
-            return redirect(url_for('upload'))
-        else:
-            flash('Lütfen geçerli bir API anahtarı girin.')
-    return render_template('apikey.html')
 
+    error = None
+    if request.method == 'POST':
+        api_key = request.form.get('api_key')
+        if not api_key or len(api_key.strip()) < 10:
+            error = "Geçerli bir API anahtarı girin."
+        else:
+            session['api_key'] = api_key.strip()
+            return redirect(url_for('upload'))
+
+    return render_template('apikey.html', error=error)
+
+# =====================
+# Excel Yükleme Sayfası
+# =====================
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
-    if 'apikey' not in session:
+    if 'api_key' not in session:
         return redirect(url_for('apikey'))
 
+    error = None
     if request.method == 'POST':
         file = request.files.get('file')
         if file and file.filename.endswith(('.xls', '.xlsx')):
             filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            os.makedirs('uploads', exist_ok=True)
+            filepath = os.path.join('uploads', filename)
             file.save(filepath)
             return redirect(url_for('report', filename=filename))
         else:
-            flash("Lütfen geçerli bir Excel dosyası yükleyin.")
-    return render_template('upload.html')
+            error = "Lütfen geçerli bir Excel dosyası (.xls, .xlsx) yükleyin."
 
-@app.route('/report/<filename>')
-def report(filename):
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    key = session.get('apikey')
-    gmaps = googlemaps.Client(key=key)
+    return render_template('upload.html', error=error)
 
-    try:
-        df = pd.read_excel(filepath)
-    except Exception as e:
-        flash(f"Excel dosyası okunamadı: {str(e)}")
+# =====================
+# Rapor Sayfası
+# =====================
+@app.route('/report')
+def report():
+    filename = request.args.get('filename')
+    if not filename:
         return redirect(url_for('upload'))
 
-    if not {'place_id', 'telefon'}.issubset(df.columns):
-        flash("Excel dosyasında 'place_id' ve 'telefon' sütunları olmalıdır.")
+    filepath = os.path.join('uploads', filename)
+    if not os.path.exists(filepath):
+        flash("Dosya bulunamadı.")
         return redirect(url_for('upload'))
 
-    hatalar = []
-    for index, row in df.iterrows():
-        try:
-            place = gmaps.place(place_id=row['place_id'])
-            result = place['result']
-            actual_phone = result.get('formatted_phone_number', 'YOK')
-            website = 'VAR' if 'website' in result else 'YOK'
-            if str(row['telefon']) != actual_phone:
-                hatalar.append({
-                    'satir': index + 2,
-                    'otel': result.get('name', 'İsim yok'),
-                    'adres': result.get('formatted_address', 'Adres yok'),
-                    'beklenen': row['telefon'],
-                    'gelen': actual_phone,
-                    'website': website
-                })
-        except Exception as e:
-            hatalar.append({
-                'satir': index + 2,
-                'otel': 'BİLİNEMEDİ',
-                'adres': 'BİLİNEMEDİ',
-                'beklenen': row['telefon'],
-                'gelen': f"HATA: {str(e)}",
-                'website': 'BİLİNEMEDİ'
-            })
-    return render_template('report.html', hatalar=hatalar)
+    df = pd.read_excel(filepath)
+    data = df.to_dict(orient='records')
+    columns = df.columns.tolist()
 
+    return render_template('report.html', data=data, columns=columns, filename=filename)
+
+# =====================
+# Çıkış
+# =====================
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
+# =====================
+# Uygulama Başlat
+# =====================
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True)

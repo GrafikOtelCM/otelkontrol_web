@@ -1,88 +1,58 @@
 {% extends 'base.html' %}
 
-{% block extra_head %}
-<!-- DataTables CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css">
-{% endblock %}
-
 {% block content %}
 <div class="container mt-5">
-  <h2 class="mb-4 text-center">📊 Rapor Sonuçları</h2>
+  <div class="card shadow p-4">
+    <h3 class="text-center mb-4">📋 Rapor Sonuçları</h3>
 
-  {% if errors %}
-    <div class="alert alert-warning">
-      <strong>⚠️ Uyarılar:</strong>
-      <ul>
+    {% if table_html %}
+      <div class="table-responsive">
+        {{ table_html | safe }}
+      </div>
+    {% else %}
+      <div class="alert alert-success text-center">
+        Her şey yolunda! Hata bulunamadı. 🎉
+      </div>
+    {% endif %}
+
+    {% if errors %}
+      <hr>
+      <h5>🛑 Tespit Edilen Hatalar</h5>
+      <ul class="list-group mb-3">
         {% for error in errors %}
-          <li>{{ error }}</li>
+          <li class="list-group-item list-group-item-danger">{{ error }}</li>
         {% endfor %}
       </ul>
-    </div>
-  {% endif %}
+    {% endif %}
 
-  {% if tables %}
-    <div class="table-responsive">
-      <table id="data-table" class="table table-striped table-bordered table-hover align-middle" style="width:100%">
-        <thead class="table-dark">
-          <tr>
-            {% for column in tables[0].columns %}
-              <th>{{ column }}</th>
-            {% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in tables[0].values %}
-            <tr>
-              {% for cell in row %}
-                <td>{{ cell }}</td>
-              {% endfor %}
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="text-end">
+      <a href="{{ url_for('upload') }}" class="btn btn-secondary">Yeni Dosya Yükle</a>
     </div>
-  {% else %}
-    <p class="text-center text-muted">Gösterilecek veri bulunamadı.</p>
-  {% endif %}
+  </div>
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<!-- DataTables scriptleri -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
 
 <script>
   $(document).ready(function () {
-    $('#data-table').DataTable({
+    $('table').DataTable({
       dom: 'Bfrtip',
-      buttons: [
-        { extend: 'copyHtml5', className: 'btn btn-outline-secondary btn-sm' },
-        { extend: 'csvHtml5', className: 'btn btn-outline-secondary btn-sm' },
-        { extend: 'excelHtml5', className: 'btn btn-outline-secondary btn-sm' },
-        { extend: 'print', className: 'btn btn-outline-secondary btn-sm' }
-      ],
+      buttons: ['copy', 'csv', 'excel', 'print'],
       language: {
-        search: "Ara:",
-        lengthMenu: "Göster _MENU_ kayıt",
-        info: "_TOTAL_ kayıttan _START_ - _END_ arası gösteriliyor",
-        paginate: {
-          first: "İlk",
-          last: "Son",
-          next: "İleri",
-          previous: "Geri"
-        },
-        zeroRecords: "Eşleşen kayıt bulunamadı.",
-        infoEmpty: "Kayıt bulunamadı.",
-        infoFiltered: "(Toplam _MAX_ kayıttan filtrelendi)"
+        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json'
       }
     });
   });
