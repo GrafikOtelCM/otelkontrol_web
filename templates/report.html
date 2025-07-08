@@ -1,48 +1,35 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.6">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-  </style>
+    <title>Rapor</title>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Hatalı Kayıtlar&lt;/title&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;h2&gt;Hatalı Kayıtlar&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>{% if hatalar %}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;table border="1"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;tr&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;th&gt;Satır&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;th&gt;Otel Adı&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;th&gt;Adres&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;th&gt;Beklenen Telefon&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;th&gt;Gelen Telefon&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;th&gt;Website&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/tr&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{% for hata in hatalar %}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;tr&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;td&gt;{{ hata.satir }}&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;td&gt;{{ hata.otel }}&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;td&gt;{{ hata.adres }}&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;td&gt;{{ hata.beklenen }}&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;td&gt;{{ hata.gelen }}&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;td&gt;{{ hata.website }}&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/tr&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{% endfor %}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/table&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>{% else %}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;p&gt;Hata bulunamadı. Tüm veriler doğru.&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>{% endif %}</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+    <h2>Karşılaştırma Sonucu</h2>
+    {% if hatalar %}
+        <table border="1">
+            <tr>
+                <th>Satır</th>
+                <th>Otel</th>
+                <th>Adres</th>
+                <th>Beklenen Telefon</th>
+                <th>Gelen Telefon</th>
+                <th>Website</th>
+            </tr>
+            {% for hata in hatalar %}
+            <tr>
+                <td>{{ hata.satir }}</td>
+                <td>{{ hata.otel }}</td>
+                <td>{{ hata.adres }}</td>
+                <td>{{ hata.beklenen }}</td>
+                <td>{{ hata.gelen }}</td>
+                <td>{{ hata.website }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p style="color:green;">Tüm telefon numaraları doğru!</p>
+    {% endif %}
+    <br>
+    <a href="{{ url_for('logout') }}">Çıkış Yap</a>
 </body>
 </html>
