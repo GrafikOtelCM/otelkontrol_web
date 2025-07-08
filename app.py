@@ -2,12 +2,13 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import os
 import pandas as pd
 from werkzeug.utils import secure_filename
+import googlemaps
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
 # =====================
-# Kullanıcılar
+# Çoklu Kullanıcı Bilgisi
 # =====================
 USERS = {
     "otelcm": "OtelCM741952",
@@ -24,13 +25,11 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-
         if username in USERS and USERS[username] == password:
             session['username'] = username
             return redirect(url_for('apikey'))
         else:
             error = "Kullanıcı adı veya şifre hatalı"
-
     return render_template('login.html', error=error)
 
 # =====================
@@ -79,44 +78,74 @@ def upload():
 # =====================
 @app.route('/report')
 def report():
-    if 'username' not in session or 'api_key' not in session:
+    if 'api_key' not in session or 'username' not in session:
         return redirect(url_for('login'))
 
     filename = request.args.get('filename')
     if not filename:
+        flash("Yüklenecek dosya bulunamadı.", "danger")
         return redirect(url_for('upload'))
 
     filepath = os.path.join('uploads', filename)
     if not os.path.exists(filepath):
-        flash("Dosya bulunamadı.")
+        flash("Dosya bulunamadı.", "danger")
         return redirect(url_for('upload'))
 
     df = pd.read_excel(filepath)
+    df.fillna('', inplace=True)
 
-    error_values = ["", "N/A", "None", 0]
-    errors = []
+    matched_records = []
+    mismatched_phones = []
+    no_website_hotels = []
 
-    for i, row in df.iterrows():
-        for col in df.columns:
-            value = row[col]
-            if pd.isna(value) or str(value).strip() in map(str, error_values):
-                errors.append(f"Satır {i+2}, Sütun '{col}' → Geçersiz değer: {value}")
+    gmaps = googlemaps.Client(key=session['api_key'])
 
-    data = df.fillna("").to_dict(orient='records')
-    columns = df.columns.tolist()
+    for index, row in df.iterrows():
+        otel_adi = str(row.get("Otel Adı", "")).strip()
+        excel_telefon = str(row.get("Telefon", "")).strip().replace(" ", "")
+        place_id = str(row.get("Place ID", "")).strip()
+
+        if not place_id:
+            continue
+
+        try:
+            place = gmaps.place(place_id=place_id, fields=['formatted_phone_number', 'website'])
+            g_phone = place.get('result', {}).get('formatted_phone_number', '')
+            g_website = place.get('result', {}).get('website', '')
+
+            clean_gphone = g_phone.replace(" ", "").replace("(", "").replace(")", "").replace("-", "")
+
+            if g_phone and excel_telefon not in clean_gphone:
+                mismatched_phones.append({
+                    "name": otel_adi,
+                    "excel": excel_telefon,
+                    "google": g_phone
+                })
+            elif not g_website:
+                no_website_hotels.append({
+                    "name": otel_adi,
+                    "phone": excel_telefon
+                })
+            else:
+                matched_records.append({
+                    "name": otel_adi,
+                    "phone": excel_telefon,
+                    "place_id": place_id
+                })
+
+        except Exception as e:
+            print(f"[HATA] {otel_adi}: {str(e)}")
+            continue
 
     return render_template(
-        "report.html",
-        data=data,
-        columns=columns,
-        filename=filename,
-        errors=errors,
-        error_values=[str(e) for e in error_values],
-        username=session.get('username')
+        'report.html',
+        matched_records=matched_records,
+        mismatched_phones=mismatched_phones,
+        no_website_hotels=no_website_hotels
     )
 
 # =====================
-# Çıkış
+# Oturum Sonlandırma
 # =====================
 @app.route('/logout')
 def logout():
@@ -124,7 +153,7 @@ def logout():
     return redirect(url_for('login'))
 
 # =====================
-# Sunucu Başlat
+# Uygulama Başlat
 # =====================
 if __name__ == '__main__':
     app.run(debug=True)
