@@ -3,24 +3,30 @@ import os
 import pandas as pd
 from werkzeug.utils import secure_filename
 import googlemaps
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-# Çoklu kullanıcı desteği
+# =====================
+# Kullanıcılar
+# =====================
 USERS = {
     "otelcm": "OtelCM741952",
     "ecem": "e741952",
     "grafik": "g741952"
 }
 
-# Giriş Sayfası
+# =====================
+# Giriş
+# =====================
 @app.route('/', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+
         if username in USERS and USERS[username] == password:
             session['username'] = username
             return redirect(url_for('apikey'))
@@ -28,7 +34,9 @@ def login():
             error = "Kullanıcı adı veya şifre hatalı"
     return render_template('login.html', error=error)
 
-# API Key Sayfası
+# =====================
+# API Key Girişi
+# =====================
 @app.route('/apikey', methods=['GET', 'POST'])
 def apikey():
     if 'username' not in session:
@@ -45,11 +53,13 @@ def apikey():
 
     return render_template('apikey.html', error=error)
 
-# Excel Yükleme
+# =====================
+# Dosya Yükleme
+# =====================
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
-    if 'api_key' not in session or 'username' not in session:
-        return redirect(url_for('login'))
+    if 'api_key' not in session:
+        return redirect(url_for('apikey'))
 
     error = None
     if request.method == 'POST':
@@ -62,85 +72,89 @@ def upload():
             return redirect(url_for('report', filename=filename))
         else:
             error = "Lütfen geçerli bir Excel dosyası (.xls, .xlsx) yükleyin."
-
     return render_template('upload.html', error=error)
 
+# =====================
 # Rapor Sayfası
+# =====================
 @app.route('/report')
 def report():
-    if 'api_key' not in session or 'username' not in session:
-        return redirect(url_for('login'))
+    if 'api_key' not in session:
+        return redirect(url_for('apikey'))
 
     filename = request.args.get('filename')
     if not filename:
-        flash("Yüklenecek dosya bulunamadı.", "danger")
         return redirect(url_for('upload'))
 
     filepath = os.path.join('uploads', filename)
     if not os.path.exists(filepath):
-        flash("Dosya bulunamadı.", "danger")
+        flash("Dosya bulunamadı.")
         return redirect(url_for('upload'))
 
     df = pd.read_excel(filepath)
     df.fillna('', inplace=True)
 
-    matched_records = []
-    mismatched_phones = []
-    no_website_hotels = []
+    correct = []
+    website_missing = []
+    phone_mismatch = []
 
     gmaps = googlemaps.Client(key=session['api_key'])
 
     for index, row in df.iterrows():
-        otel_adi = str(row.get("Otel Adı", "")).strip()
-        excel_telefon = str(row.get("Telefon", "")).strip().replace(" ", "")
-        place_id = str(row.get("Place ID", "")).strip()
-
-        if not place_id:
-            continue
+        otel_adi = str(row.get('Otel Adı')).strip()
+        excel_phone = str(row.get('Telefon')).strip()
+        place_id = str(row.get('Place ID')).strip()
 
         try:
-            place = gmaps.place(place_id=place_id, fields=['formatted_phone_number', 'website'])
-            g_phone = place.get('result', {}).get('formatted_phone_number', '')
-            g_website = place.get('result', {}).get('website', '')
+            details = gmaps.place(place_id=place_id, fields=['formatted_phone_number', 'website'])
+            result = details.get('result', {})
 
-            clean_gphone = g_phone.replace(" ", "").replace("(", "").replace(")", "").replace("-", "")
+            google_phone = str(result.get('formatted_phone_number', '')).replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+            excel_phone_clean = excel_phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
 
-            if g_phone and excel_telefon not in clean_gphone:
-                mismatched_phones.append({
-                    "name": otel_adi,
-                    "excel": excel_telefon,
-                    "google": g_phone
-                })
-            elif not g_website:
-                no_website_hotels.append({
-                    "name": otel_adi,
-                    "phone": excel_telefon
+            has_website = bool(result.get('website'))
+
+            if not has_website:
+                website_missing.append({'otel_adi': otel_adi, 'telefon': excel_phone})
+            elif google_phone and excel_phone_clean != google_phone:
+                phone_mismatch.append({
+                    'otel_adi': otel_adi,
+                    'beklenen': excel_phone,
+                    'googledaki': google_phone
                 })
             else:
-                matched_records.append({
-                    "name": otel_adi,
-                    "phone": excel_telefon,
-                    "place_id": place_id
+                correct.append({
+                    'otel_adi': otel_adi,
+                    'telefon': excel_phone,
+                    'place_id': place_id
                 })
-
         except Exception as e:
-            print(f"[HATA] {otel_adi}: {str(e)}")
+            print(f"Hata: {otel_adi} - {e}")
             continue
 
-    return render_template(
-        'report.html',
-        matched_records=matched_records,
-        mismatched_phones=mismatched_phones,
-        no_website_hotels=no_website_hotels,
-        filename=filename
-    )
+    stats = {
+        'total': len(df),
+        'correct': len(correct),
+        'website_missing': len(website_missing),
+        'phone_mismatch': len(phone_mismatch)
+    }
 
-# Oturum Sonlandırma
+    return render_template('report.html',
+                           correct=correct,
+                           website_missing=website_missing,
+                           phone_mismatch=phone_mismatch,
+                           stats=stats)
+
+# =====================
+# Çıkış
+# =====================
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# Uygulama Başlat
+# =====================
+# Uygulama Başlatma
+# =====================
 if __name__ == '__main__':
     app.run(debug=True)
