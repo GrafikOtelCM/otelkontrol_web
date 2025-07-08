@@ -3,13 +3,12 @@
 {% block content %}
 <div class="container mt-5">
   <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-6">
       <div class="card shadow p-4">
-        <h3 class="text-center mb-4">📄 Excel Dosyası Yükle</h3>
-
-        <form method="POST" enctype="multipart/form-data">
+        <h3 class="text-center mb-4">📤 Excel Dosyası Yükle</h3>
+        <form method="post" enctype="multipart/form-data">
           <div class="mb-3">
-            <label for="file" class="form-label">Dosya Seç (.xls, .xlsx)</label>
+            <label for="file" class="form-label">Dosya Seç (.xlsx, .xls)</label>
             <input class="form-control" type="file" id="file" name="file" accept=".xls,.xlsx" required>
           </div>
 
@@ -20,7 +19,7 @@
           {% endif %}
 
           <div class="d-grid">
-            <button type="submit" class="btn btn-primary">Yükle ve Raporla</button>
+            <button type="submit" class="btn btn-primary">Yükle ve Analiz Et</button>
           </div>
         </form>
       </div>

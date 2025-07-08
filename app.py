@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
 # =====================
-# Çoklu Kullanıcı Listesi (kullanıcı adı: şifre)
+# Kullanıcılar
 # =====================
 USERS = {
     "otelcm": "OtelCM741952",
@@ -53,7 +53,7 @@ def apikey():
     return render_template('apikey.html', error=error)
 
 # =====================
-# Excel Yükleme Sayfası
+# Dosya Yükleme Sayfası
 # =====================
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
@@ -79,6 +79,9 @@ def upload():
 # =====================
 @app.route('/report')
 def report():
+    if 'username' not in session or 'api_key' not in session:
+        return redirect(url_for('login'))
+
     filename = request.args.get('filename')
     if not filename:
         return redirect(url_for('upload'))
@@ -89,10 +92,28 @@ def report():
         return redirect(url_for('upload'))
 
     df = pd.read_excel(filepath)
-    data = df.to_dict(orient='records')
+
+    error_values = ["", "N/A", "None", 0]
+    errors = []
+
+    for i, row in df.iterrows():
+        for col in df.columns:
+            value = row[col]
+            if pd.isna(value) or str(value).strip() in map(str, error_values):
+                errors.append(f"Satır {i+2}, Sütun '{col}' → Geçersiz değer: {value}")
+
+    data = df.fillna("").to_dict(orient='records')
     columns = df.columns.tolist()
 
-    return render_template('report.html', data=data, columns=columns, filename=filename)
+    return render_template(
+        "report.html",
+        data=data,
+        columns=columns,
+        filename=filename,
+        errors=errors,
+        error_values=[str(e) for e in error_values],
+        username=session.get('username')
+    )
 
 # =====================
 # Çıkış
@@ -103,7 +124,7 @@ def logout():
     return redirect(url_for('login'))
 
 # =====================
-# Uygulama Başlat
+# Sunucu Başlat
 # =====================
 if __name__ == '__main__':
     app.run(debug=True)

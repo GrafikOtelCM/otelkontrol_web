@@ -9,22 +9,20 @@
         <form method="post">
           <div class="mb-3">
             <label for="username" class="form-label">Kullanıcı Adı</label>
-            <input type="text" class="form-control" id="username" name="username" placeholder="Kullanıcı adınızı girin" required>
+            <input type="text" class="form-control" id="username" name="username" required placeholder="Kullanıcı adınızı girin">
           </div>
           <div class="mb-3">
             <label for="password" class="form-label">Şifre</label>
-            <input type="password" class="form-control" id="password" name="password" placeholder="Şifrenizi girin" required>
+            <input type="password" class="form-control" id="password" name="password" required placeholder="Şifrenizi girin">
           </div>
 
-          {% with messages = get_flashed_messages() %}
-            {% if messages %}
-              <div class="alert alert-danger">
-                {{ messages[0] }}
-              </div>
-            {% endif %}
-          {% endwith %}
+          {% if error %}
+            <div class="alert alert-danger mt-2" role="alert">
+              {{ error }}
+            </div>
+          {% endif %}
 
-          <div class="d-grid">
+          <div class="d-grid mt-3">
             <button type="submit" class="btn btn-primary">Giriş Yap</button>
           </div>
         </form>

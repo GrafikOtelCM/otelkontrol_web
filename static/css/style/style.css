@@ -1,90 +1,47 @@
-/* ======== Genel Ayarlar ======== */
 body {
-  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  background-color: #f4f7fa;
-  color: #333;
-  min-height: 100vh;
+  background-color: #f8f9fa;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Navbar */
-.navbar {
-  background-color: #004b91;
-}
 .navbar-brand {
-  color: #ffffff;
-  font-weight: bold;
   font-size: 1.4rem;
 }
-.navbar-brand:hover {
-  color: #ffdd57;
-}
-.nav-link {
-  color: #fff !important;
-}
-.nav-link:hover {
-  color: #ffdd57 !important;
+
+.navbar-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
-/* Kartlar */
 .card {
-  border: none;
-  border-radius: 12px;
-  background-color: #ffffff;
-}
-.card h3, .card h4 {
-  color: #004b91;
+  border-radius: 10px;
 }
 
-/* Butonlar */
-.btn-primary {
-  background-color: #004b91;
-  border: none;
-}
-.btn-primary:hover {
-  background-color: #00396f;
-}
-.btn-success {
-  background-color: #28a745;
-  border: none;
-}
-.btn-success:hover {
-  background-color: #1e7e34;
-}
-.btn-secondary {
-  background-color: #6c757d;
-  border: none;
-}
-.btn-secondary:hover {
-  background-color: #5a6268;
-}
-
-/* Form Elemanları */
-input.form-control,
-select.form-control,
-textarea.form-control {
-  border-radius: 6px;
-  border-color: #ccc;
-  box-shadow: none;
-}
-
-/* DataTable Özelleştirmeleri */
-.dataTables_wrapper .dt-buttons {
-  margin-bottom: 15px;
-}
-.dataTables_wrapper .dataTables_length select {
-  border-radius: 5px;
-}
-.dataTables_wrapper .dataTables_filter input {
-  border-radius: 5px;
-}
-table.dataTable tbody tr:hover {
-  background-color: #f1f1f1;
-}
-
-/* Footer veya Alt Bilgi */
-.footer {
+table.dataTable thead th {
+  background-color: #343a40;
+  color: white;
   text-align: center;
-  padding: 15px;
-  color: #777;
+}
+
+table.dataTable tbody td {
+  vertical-align: middle;
+  text-align: center;
+}
+
+.alert {
   font-size: 0.9rem;
+}
+
+.btn-primary,
+.btn-success,
+.btn-danger {
+  font-weight: 500;
+}
+
+footer {
+  margin-top: 50px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #888;
 }
