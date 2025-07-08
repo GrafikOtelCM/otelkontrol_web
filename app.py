@@ -7,18 +7,14 @@ import googlemaps
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-# =====================
-# Çoklu Kullanıcı Bilgisi
-# =====================
+# Çoklu kullanıcı desteği
 USERS = {
     "otelcm": "OtelCM741952",
     "ecem": "e741952",
     "grafik": "g741952"
 }
 
-# =====================
 # Giriş Sayfası
-# =====================
 @app.route('/', methods=['GET', 'POST'])
 def login():
     error = None
@@ -32,9 +28,7 @@ def login():
             error = "Kullanıcı adı veya şifre hatalı"
     return render_template('login.html', error=error)
 
-# =====================
 # API Key Sayfası
-# =====================
 @app.route('/apikey', methods=['GET', 'POST'])
 def apikey():
     if 'username' not in session:
@@ -51,13 +45,11 @@ def apikey():
 
     return render_template('apikey.html', error=error)
 
-# =====================
-# Dosya Yükleme Sayfası
-# =====================
+# Excel Yükleme
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
-    if 'api_key' not in session:
-        return redirect(url_for('apikey'))
+    if 'api_key' not in session or 'username' not in session:
+        return redirect(url_for('login'))
 
     error = None
     if request.method == 'POST':
@@ -73,9 +65,7 @@ def upload():
 
     return render_template('upload.html', error=error)
 
-# =====================
 # Rapor Sayfası
-# =====================
 @app.route('/report')
 def report():
     if 'api_key' not in session or 'username' not in session:
@@ -141,19 +131,16 @@ def report():
         'report.html',
         matched_records=matched_records,
         mismatched_phones=mismatched_phones,
-        no_website_hotels=no_website_hotels
+        no_website_hotels=no_website_hotels,
+        filename=filename
     )
 
-# =====================
 # Oturum Sonlandırma
-# =====================
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# =====================
 # Uygulama Başlat
-# =====================
 if __name__ == '__main__':
     app.run(debug=True)

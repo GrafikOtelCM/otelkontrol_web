@@ -1,65 +1,108 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container my-5">
-  <h2 class="text-center mb-4"><i class="bi bi-clipboard-data"></i> Rapor Sayfası</h2>
+  <h2 class="text-center mb-4">📊 Rapor Sonuçları</h2>
 
-  {% if mismatched_phones %}
-    <div class="card shadow mb-4">
-      <div class="card-header bg-danger text-white fw-bold">📞 Telefon Numarası Uyuşmayanlar</div>
-      <div class="card-body">
-        <table id="phoneMismatchTable" class="table table-bordered table-striped">
-          <thead><tr><th>Otel Adı</th><th>Excel Telefon</th><th>Google Telefon</th></tr></thead>
-          <tbody>
-            {% for row in mismatched_phones %}
-              <tr><td>{{ row.name }}</td><td>{{ row.excel }}</td><td>{{ row.google }}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  {% endif %}
+  <ul class="nav nav-tabs mb-4" id="resultTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="match-tab" data-bs-toggle="tab" data-bs-target="#match" type="button" role="tab">✔️ Doğru Kayıtlar</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="phone-tab" data-bs-toggle="tab" data-bs-target="#phone" type="button" role="tab">📞 Telefon Uyumsuz</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="website-tab" data-bs-toggle="tab" data-bs-target="#website" type="button" role="tab">🌐 Web Sitesiz</button>
+    </li>
+  </ul>
 
-  {% if no_website_hotels %}
-    <div class="card shadow mb-4">
-      <div class="card-header bg-warning fw-bold">🌐 Web Sitesi Olmayan Oteller</div>
-      <div class="card-body">
-        <table id="noWebsiteTable" class="table table-bordered table-striped">
-          <thead><tr><th>Otel Adı</th><th>Telefon</th></tr></thead>
-          <tbody>
-            {% for row in no_website_hotels %}
-              <tr><td>{{ row.name }}</td><td>{{ row.phone }}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+  <div class="tab-content">
+    <!-- DOĞRU KAYITLAR -->
+    <div class="tab-pane fade show active" id="match" role="tabpanel">
+      <table id="matchedTable" class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Otel Adı</th>
+            <th>Telefon</th>
+            <th>Place ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in matched_records %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.phone }}</td>
+            <td>{{ item.place_id }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-  {% endif %}
 
-  {% if matched_records %}
-    <div class="card shadow">
-      <div class="card-header bg-success text-white fw-bold">✅ Doğru Kayıtlar</div>
-      <div class="card-body">
-        <table id="matchedTable" class="table table-bordered table-striped">
-          <thead><tr><th>Otel Adı</th><th>Telefon</th><th>Place ID</th></tr></thead>
-          <tbody>
-            {% for row in matched_records %}
-              <tr><td>{{ row.name }}</td><td>{{ row.phone }}</td><td>{{ row.place_id }}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+    <!-- TELEFON UYUMSUZ -->
+    <div class="tab-pane fade" id="phone" role="tabpanel">
+      <table id="mismatchTable" class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Otel Adı</th>
+            <th>Excel Numarası</th>
+            <th>Google Numarası</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in mismatched_phones %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.excel }}</td>
+            <td>{{ item.google }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-  {% endif %}
+
+    <!-- WEBSITE YOK -->
+    <div class="tab-pane fade" id="website" role="tabpanel">
+      <table id="websiteTable" class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Otel Adı</th>
+            <th>Telefon</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in no_website_hotels %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.phone }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-  {{ super() }}
-  <script>
-    $(document).ready(function () {
-      $('#phoneMismatchTable').DataTable({ dom: 'Bfrtip', buttons: ['copy', 'excel', 'pdf', 'print'], language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/tr.json' } });
-      $('#noWebsiteTable').DataTable({ dom: 'Bfrtip', buttons: ['copy', 'excel', 'pdf', 'print'], language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/tr.json' } });
-      $('#matchedTable').DataTable({ dom: 'Bfrtip', buttons: ['copy', 'excel', 'pdf', 'print'], language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/tr.json' } });
+<script>
+  $(document).ready(function () {
+    $('#matchedTable').DataTable({
+      dom: 'Bfrtip',
+      buttons: ['copy', 'excel', 'pdf', 'print'],
+      language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json' }
     });
-  </script>
+
+    $('#mismatchTable').DataTable({
+      dom: 'Bfrtip',
+      buttons: ['copy', 'excel', 'pdf', 'print'],
+      language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json' }
+    });
+
+    $('#websiteTable').DataTable({
+      dom: 'Bfrtip',
+      buttons: ['copy', 'excel', 'pdf', 'print'],
+      language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json' }
+    });
+  });
+</script>
 {% endblock %}
