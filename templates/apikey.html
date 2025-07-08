@@ -1,18 +1,30 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>API Anahtarı</title>
-</head>
-<body>
-    <h2>API Anahtarı Gir</h2>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <p style="color:red;">{{ messages[0] }}</p>
-      {% endif %}
-    {% endwith %}
-    <form method="POST">
-        API Key: <input type="text" name="apikey"><br>
-        <input type="submit" value="Devam Et">
-    </form>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow p-4">
+        <h3 class="text-center mb-4">🔑 API Anahtarı Girişi</h3>
+        <form method="post">
+          <div class="mb-3">
+            <label for="api_key" class="form-label">API Key</label>
+            <input type="password" class="form-control" id="api_key" name="api_key"
+                   placeholder="API anahtarınızı girin" required>
+          </div>
+
+          {% if error %}
+            <div class="alert alert-danger">
+              {{ error }}
+            </div>
+          {% endif %}
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-success">Devam Et</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
