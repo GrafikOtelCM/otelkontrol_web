@@ -1,47 +1,43 @@
 body {
   background-color: #f8f9fa;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', sans-serif;
 }
 
 .navbar-brand {
-  font-size: 1.4rem;
+  font-weight: bold;
 }
 
-.navbar-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 180px;
+.navbar .nav-link {
+  color: #fff !important;
+  font-weight: 500;
+  transition: color 0.2s ease-in-out;
+}
+
+.navbar .nav-link:hover {
+  color: #ffc107 !important;
+}
+
+main {
+  min-height: 80vh;
 }
 
 .card {
   border-radius: 10px;
 }
 
-table.dataTable thead th {
-  background-color: #343a40;
-  color: white;
-  text-align: center;
-}
-
-table.dataTable tbody td {
-  vertical-align: middle;
-  text-align: center;
-}
-
-.alert {
-  font-size: 0.9rem;
-}
-
-.btn-primary,
-.btn-success,
-.btn-danger {
+.btn {
   font-weight: 500;
 }
 
-footer {
-  margin-top: 50px;
-  text-align: center;
-  font-size: 0.85rem;
-  color: #888;
+table.dataTable thead {
+  background-color: #343a40;
+  color: white;
+}
+
+table.dataTable tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+div.dt-buttons {
+  margin-bottom: 15px;
 }
