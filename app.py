@@ -5,6 +5,10 @@ import googlemaps
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+
+def normalize_phone(phone):
+    return ''.join(filter(str.isdigit, str(phone)))
+
 app.secret_key = 'supersecretkey'
 
 USERS = {
