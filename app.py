@@ -8,25 +8,18 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-# =====================
-# Kullanıcılar
-# =====================
 USERS = {
     "otelcm": "OtelCM741952",
     "ecem": "e741952",
     "grafik": "g741952"
 }
 
-# =====================
-# Giriş
-# =====================
 @app.route('/', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-
         if username in USERS and USERS[username] == password:
             session['username'] = username
             return redirect(url_for('apikey'))
@@ -34,9 +27,6 @@ def login():
             error = "Kullanıcı adı veya şifre hatalı"
     return render_template('login.html', error=error)
 
-# =====================
-# API Key Girişi
-# =====================
 @app.route('/apikey', methods=['GET', 'POST'])
 def apikey():
     if 'username' not in session:
@@ -53,9 +43,6 @@ def apikey():
 
     return render_template('apikey.html', error=error)
 
-# =====================
-# Dosya Yükleme
-# =====================
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if 'api_key' not in session:
@@ -74,9 +61,6 @@ def upload():
             error = "Lütfen geçerli bir Excel dosyası (.xls, .xlsx) yükleyin."
     return render_template('upload.html', error=error)
 
-# =====================
-# Rapor Sayfası
-# =====================
 @app.route('/report')
 def report():
     if 'api_key' not in session:
@@ -145,16 +129,10 @@ def report():
                            phone_mismatch=phone_mismatch,
                            stats=stats)
 
-# =====================
-# Çıkış
-# =====================
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# =====================
-# Uygulama Başlatma
-# =====================
 if __name__ == '__main__':
     app.run(debug=True)
