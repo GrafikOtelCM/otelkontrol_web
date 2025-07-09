@@ -1,21 +1,19 @@
 import re
 
-def normalize_phone(phone: str) -> str:
+def normalize_phone_number(phone):
     """
-    Telefon numaralarını sadeleştirip yalnızca rakamlarla döndürür.
-    Örnek: "(0242) 123 45 67" -> "02421234567"
+    Telefon numarasındaki boşluk, parantez, tire gibi karakterleri temizler,
+    sadece sayıları bırakır.
     """
     if not phone:
         return ""
-    # Sadece rakamları al
-    digits = re.sub(r'\D', '', phone)
-    # Başında 90 varsa kaldır
-    if digits.startswith("90") and len(digits) > 10:
-        digits = digits[2:]
-    return digits
+    cleaned = re.sub(r"[^\d]", "", phone)
+    return cleaned[-10:] if len(cleaned) >= 10 else cleaned
 
-def sanitize_place_id(raw_id: str) -> str:
+def sanitize_place_id(place_id):
     """
-    Place ID değerlerinden boşluk, yeni satır, tab gibi karakterleri temizler.
+    Place ID'deki baştaki ve sondaki boşlukları temizler, geçersiz olanları boş döner.
     """
-    return raw_id.strip().replace('\n', '').replace('\r', '').replace(' ', '')
+    if not place_id or place_id.lower() in ['nan', 'none']:
+        return None
+    return place_id.strip()

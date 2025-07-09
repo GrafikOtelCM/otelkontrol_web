@@ -2,24 +2,35 @@
 
 {% block content %}
 <div class="container mt-5">
+  <h2 class="text-center mb-4">📤 Excel Dosyası Yükle</h2>
   <div class="row justify-content-center">
-    <div class="col-md-6">
+    <div class="col-md-8">
       <div class="card shadow p-4">
-        <h3 class="text-center mb-4">📤 Excel Dosyası Yükle</h3>
-        <form method="post" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data">
           <div class="mb-3">
-            <label for="file" class="form-label">Dosya Seç (.xlsx, .xls)</label>
-            <input class="form-control" type="file" id="file" name="file" accept=".xls,.xlsx" required>
+            <label for="file" class="form-label">Excel Dosyası Seç (.xlsx/.xls)</label>
+            <input type="file" class="form-control" id="file" name="file" accept=".xls,.xlsx" required>
           </div>
 
           {% if error %}
-            <div class="alert alert-danger">
+            <div class="alert alert-danger" role="alert">
               {{ error }}
             </div>
           {% endif %}
 
-          <div class="d-grid">
-            <button type="submit" class="btn btn-primary">Yükle ve Analiz Et</button>
+          {% if hatalar %}
+            <div class="alert alert-warning">
+              <h5 class="mb-2">⚠️ Geçersiz veya Boş Place ID'ye Sahip Oteller:</h5>
+              <ul class="mb-0 ps-3">
+                {% for otel, neden in hatalar %}
+                  <li><strong>{{ otel }}</strong>: {{ neden }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <div class="d-grid mt-3">
+            <button type="submit" class="btn btn-success">Yükle ve Analiz Et</button>
           </div>
         </form>
       </div>
